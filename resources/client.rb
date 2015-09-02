@@ -1,4 +1,4 @@
-actions :add
+actions :add, :create
 default_action :add
 
 attribute :name, :kind_of => String, :name_attribute => true
@@ -11,7 +11,7 @@ attribute :as_keyring, :kind_of => [TrueClass, FalseClass], :default => true
 # defaults to client.#{name}.#{hostname}
 attribute :keyname, :kind_of => String
 
-# The actual key (a random key will be generated if not provided)
+# The actual key (the key will be read from a vault item if not provided)
 attribute :key, :kind_of => String, :default => nil
 
 # where the key should be saved

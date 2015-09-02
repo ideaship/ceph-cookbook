@@ -1,27 +1,15 @@
 require 'json'
-
-def crowbar?
-  !defined?(Chef::Recipe::Barclamp).nil?
-end
+require 'chef-vault'
 
 def mon_env_search_string
-  if crowbar?
-    mon_roles = search(:role, 'name:crowbar-* AND run_list:role\[ceph-mon\]')
-    unless mon_roles.empty?
-      search_string = mon_roles.map { |role_object| 'roles:' + role_object.name }.join(' OR ')
-      search_string = "(#{search_string}) AND ceph_config_environment:#{node['ceph']['config']['environment']}"
-    end
-  else
-    search_string = 'ceph_is_mon:true'
-    if node['ceph']['search_environment'].is_a?(String)
-      # search for nodes with this particular env
-      search_string += " AND chef_environment:#{node['ceph']['search_environment']}"
-    elsif node['ceph']['search_environment']
-      # search for any nodes with this environment
-      search_string += " AND chef_environment:#{node.chef_environment}"
-    else
-      # search for any mon nodes
-    end
+  # search for any mon nodes
+  search_string = 'ceph_is_mon:true'
+  if node['ceph']['search_environment'].is_a?(String)
+    # search for nodes with this particular env
+    search_string += " AND chef_environment:#{node['ceph']['search_environment']}"
+  elsif node['ceph']['search_environment']
+    # search for any nodes with this environment
+    search_string += " AND chef_environment:#{node.chef_environment}"
   end
   search_string
 end
@@ -29,21 +17,7 @@ end
 def mon_nodes
   search_string = mon_env_search_string
 
-  if use_cephx? && !node['ceph']['encrypted_data_bags']
-    search_string = "(#{search_string}) AND (ceph_bootstrap_osd_key:*)"
-  end
   search(:node, search_string)
-end
-
-def osd_secret
-  if node['ceph']['encrypted_data_bags']
-    secret = Chef::EncryptedDataBagItem.load_secret(node['ceph']['osd']['secret_file'])
-    return Chef::EncryptedDataBagItem.load('ceph', 'osd', secret)['secret']
-  elsif node['ceph']['bootstrap_osd_key']
-    return node['ceph']['bootstrap_osd_key']
-  else
-    return mon_nodes[0]['ceph']['bootstrap_osd_key']
-  end
 end
 
 # If public_network is specified with one or more networks, we need to
@@ -111,31 +85,26 @@ def mon_addresses
     mons << node if node['ceph']['is_mon']
 
     mons += mon_nodes
-    if crowbar?
-      mon_ips = mons.map { |node| Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, 'admin').address }
+    if node['ceph']['config']['global'] && node['ceph']['config']['global']['public network']
+      mon_ips = mons.map { |nodeish| find_node_ip_in_network(node['ceph']['config']['global']['public network'], nodeish) }
     else
-      if node['ceph']['config']['global'] && node['ceph']['config']['global']['public network']
-        mon_ips = mons.map { |nodeish| find_node_ip_in_network(node['ceph']['config']['global']['public network'], nodeish) }
-      else
-        mon_ips = mons.map { |node| node['ipaddress'] + ':6789' }
-      end
+      mon_ips = mons.map { |node| node['ipaddress'] + ':6789' }
     end
   end
   mon_ips.reject { |m| m.nil? }.uniq
 end
 
+def ceph_secret(name)
+  client = "ceph_#{name}"
+  ChefVault::Item.load('vault_ceph_secrets', client)[client]
+end
+
 def mon_secret
-  if node['ceph']['encrypted_data_bags']
-    secret = Chef::EncryptedDataBagItem.load_secret(node['ceph']['mon']['secret_file'])
-    Chef::EncryptedDataBagItem.load('ceph', 'mon', secret)['secret']
-  elsif !mon_nodes.empty?
-    mon_nodes[0]['ceph']['monitor-secret']
-  elsif node['ceph']['monitor-secret']
-    node['ceph']['monitor-secret']
-  else
-    Chef::Log.info('No monitor secret found')
-    nil
-  end
+  ceph_secret 'mon'
+end
+
+def osd_secret
+  ceph_secret 'bootstrap_osd'
 end
 
 def quorum_members_ips
@@ -146,40 +115,9 @@ def quorum_members_ips
 
   mons = JSON.parse(cmd.stdout)['monmap']['mons']
   mons.each do |k|
+    # Note(JR): This may fail once ceph defines address types other than 0, might be better to explicitly filter for ".../0"
+    # Also need to check whether this works with inet6.
     mon_ips.push(k['addr'][0..-3])
   end
   mon_ips
-end
-
-def quorum?
-  # "ceph auth get-or-create-key" would hang if the monitor wasn't
-  # in quorum yet, which is highly likely on the first run. This
-  # helper lets us delay the key generation into the next
-  # chef-client run, instead of hanging.
-  #
-  # Also, as the UNIX domain socket connection has no timeout logic
-  # in the ceph tool, this exits immediately if the ceph-mon is not
-  # running for any reason; trying to connect via TCP/IP would wait
-  # for a relatively long timeout.
-  quorum_states = %w(leader, peon)
-
-  cmd = Mixlib::ShellOut.new("ceph --admin-daemon /var/run/ceph/ceph-mon.#{node['hostname']}.asok mon_status")
-  cmd.run_command
-  cmd.error!
-
-  state = JSON.parse(cmd.stdout)['state']
-  quorum_states.include?(state)
-end
-
-# Cephx is on by default, but users can disable it.
-# type can be one of 3 values: cluster, service, or client.  If the value is none of the above, set it to cluster
-def use_cephx?(type = nil)
-  # Verify type is valid
-  type = 'cluster' if %w(cluster service client).index(type).nil?
-
-  # CephX is enabled if it's not configured at all, or explicity enabled
-  node['ceph']['config'].nil? ||
-    node['ceph']['config']['global'].nil? ||
-    node['ceph']['config']['global']["auth #{type} required"].nil? ||
-    node['ceph']['config']['global']["auth #{type} required"] == 'cephx'
 end

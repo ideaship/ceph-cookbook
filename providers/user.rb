@@ -61,13 +61,10 @@ end
 def create_entity(keyname)
   tmp_keyring = "#{Chef::Config[:file_cache_path]}/.#{keyname}.keyring"
 
-  unless new_resource.key
-    new_resource.key = ceph_secret keyname
-  end
+  key = new_resource.key || ceph_secret(keyname)
 
-  # store key provided in a temporary keyring file
   cmd_text = "ceph-authtool #{tmp_keyring} --create-keyring --name #{keyname} "\
-             "--add-key '#{new_resource.key}'"
+             "--add-key '#{key}'"
   cmd = Mixlib::ShellOut.new(cmd_text)
   cmd.run_command
   cmd.error!

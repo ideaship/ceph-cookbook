@@ -74,7 +74,7 @@ end
 if node['ceph']['osd_devices']
   devices = node['ceph']['osd_devices']
 
-  devices = Hash[(0...devices.size).zip devices] unless devices.kind_of? Hash
+  devices = Hash[(0...devices.size).zip devices] unless devices.is_a? Hash
 
   devices.each do |index, osd_device|
     unless osd_device['status'].nil?
@@ -125,5 +125,5 @@ if node['ceph']['osd_devices']
     supports :restart => true
   end
 else
-    Log.info('node["ceph"]["osd_devices"] empty')
+  Log.info('node["ceph"]["osd_devices"] empty')
 end

@@ -91,7 +91,7 @@ def mon_addresses
       mon_ips = mons.map { |node| node['ipaddress'] + ':6789' }
     end
   end
-  mon_ips.reject { |m| m.nil? }.uniq
+  mon_ips.reject(&:nil?).uniq
 end
 
 def ceph_secret(name)

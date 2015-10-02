@@ -43,9 +43,9 @@
 <% end -%>
 <% end -%>
   host = <%= node['hostname'] %>
-  rgw socket path = /var/run/ceph-radosgw/radosgw.<%= @rgw_clientname %>
-  admin socket = /var/run/ceph-radosgw/ceph-client.radosgw.<%= @rgw_clientname %>.asok
-  pid file = /var/run/ceph-radosgw/$name.pid
+  rgw socket path = /var/run/ceph/radosgw.<%= @rgw_clientname %>
+  admin socket = /var/run/ceph/ceph-client.radosgw.<%= @rgw_clientname %>.asok
+  pid file = /var/run/ceph/$name.pid
   keyring = /etc/ceph/ceph.client.radosgw.<%= @rgw_clientname %>.keyring
   log file = /var/log/radosgw/radosgw.log
 <% if (! node['ceph']['config']['rgw'].nil?) -%>

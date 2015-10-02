@@ -54,13 +54,6 @@ file '/var/log/radosgw/radosgw.log' do
   group node['apache']['group']
 end
 
-directory '/var/run/ceph-radosgw' do
-  owner node['apache']['user']
-  group node['apache']['group']
-  mode '0755'
-  action :create
-end
-
 if node['ceph']['radosgw']['webserver_companion']
   include_recipe "ceph::radosgw_#{node['ceph']['radosgw']['webserver_companion']}"
 end

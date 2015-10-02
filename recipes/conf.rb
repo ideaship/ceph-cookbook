@@ -19,7 +19,8 @@ template '/etc/ceph/ceph.conf' do
   variables lazy {
     {
       :mon_addresses => mon_addresses,
-      :is_rgw => node['ceph']['is_radosgw']
+      :is_rgw => node['ceph']['is_radosgw'],
+      :rgw_clientname => node['ceph']['radosgw']['clientname']
     }
   }
   mode '0644'

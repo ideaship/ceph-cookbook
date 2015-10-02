@@ -17,7 +17,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# needed for address_for method
+class ::Chef::Recipe
+    include ::Openstack
+end
+
+zone = node['ceph']['radosgw']['zone']
+region = node['ceph']['radosgw']['region']
 node.default['ceph']['is_radosgw'] = true
+node.default['ceph']['config']['rgw'] = {
+  'rgw region' => region[1..-1],
+  'rgw region root pool' => "#{region}.rgw.root",
+  'rgw zone' => "#{region[1..-1]}#{zone}",
+  'rgw zone root pool' => "#{region}#{zone}.rgw.root",
+  'rgw dns name' => node['ceph']['radosgw']['api_fqdn'],
+}
+
+bind_iface = node['ceph']['radosgw']['bind_interface'] 
+if bind_iface
+  address = address_for bind_iface
+  node.normal['ceph']['radosgw']['rgw_addr'] = "#{address}:80"
+end
 
 include_recipe 'ceph'
 include_recipe 'ceph::radosgw_install'
@@ -45,20 +65,52 @@ if node['ceph']['radosgw']['webserver_companion']
   include_recipe "ceph::radosgw_#{node['ceph']['radosgw']['webserver_companion']}"
 end
 
-ceph_client 'radosgw' do
-  caps('mon' => 'allow rw', 'osd' => 'allow rwx')
+rgw_clientname = node['ceph']['radosgw']['clientname']
+rgw_key =
+  chef_vault_item('vault_ceph_secrets',
+                  "ceph_radosgw_#{rgw_clientname}")["ceph_radosgw_#{rgw_clientname}"]
+rgw_caps = {
+  'mon' => 'allow r',
+  'osd' => 'allow rwx'
+}
+
+ceph_user "radosgw.#{rgw_clientname}" do
+    caps rgw_caps
+    key rgw_key
+end
+
+ceph_client "radosgw.#{rgw_clientname}" do
+  key rgw_key
   owner 'root'
   group node['apache']['group']
   mode 0640
 end
 
-directory "/var/lib/ceph/radosgw/ceph-radosgw.#{node['hostname']}" do
+ceph_client 'admin' do
+  owner 'root'
+  group 'root'
+  mode 0640
+end
+
+node['ceph']['radosgw']['pools'].each do |pool, pg_num|
+  # create zone pools for region
+  ceph_pool "#{region}#{zone}#{pool}" do
+    pg_num pg_num
+  end
+  # create region root pool
+  next unless pool == '.rgw.root'
+  ceph_pool "#{region}#{pool}" do
+    pg_num pg_num
+  end
+end
+
+directory "/var/lib/ceph/radosgw/ceph-radosgw.#{rgw_clientname}" do
   recursive true
   only_if { node['platform'] == 'ubuntu' }
 end
 
 # needed by https://github.com/ceph/ceph/blob/master/src/upstart/radosgw-all-starter.conf
-file "/var/lib/ceph/radosgw/ceph-radosgw.#{node['hostname']}/done" do
+file "/var/lib/ceph/radosgw/ceph-radosgw.#{rgw_clientname}/done" do
   action :create
   only_if { node['platform'] == 'ubuntu' }
 end
@@ -66,7 +118,7 @@ end
 service 'radosgw' do
   case node['ceph']['radosgw']['init_style']
   when 'upstart'
-    service_name 'radosgw-all-starter'
+    service_name 'radosgw-all'
     provider Chef::Provider::Service::Upstart
   else
     if node['platform'] == 'debian'

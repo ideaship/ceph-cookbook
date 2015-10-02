@@ -43,6 +43,7 @@
 
 include_recipe 'ceph'
 include_recipe 'ceph::radosgw_apache2_repo'
+node.normal['apache']['listen'] = [node['ceph']['radosgw']['rgw_addr']]
 
 node['ceph']['radosgw']['apache2']['packages'].each do |pck|
   package pck

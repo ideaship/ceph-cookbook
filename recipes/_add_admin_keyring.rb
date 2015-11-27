@@ -3,4 +3,3 @@ ceph_client 'admin' do
   group 'root'
   mode '0400'
 end
-

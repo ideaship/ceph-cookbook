@@ -127,3 +127,9 @@ if node['ceph']['osd_devices']
 else
   Log.info('node["ceph"]["osd_devices"] empty')
 end
+
+# remove the package mlocate, since this will try to index the files on all osds
+# (which will just eat a lot or resources and there is no point in doing that)
+package 'mlocate' do
+  action :purge
+end

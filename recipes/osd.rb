@@ -62,8 +62,8 @@ execute 'format bootstrap-osd as keyring' do # ~FC009
   sensitive true if Chef::Resource::Execute.method_defined? :sensitive
 end
 
-# Calling ceph-disk-prepare is sufficient for deploying an OSD
-# After ceph-disk-prepare finishes, the new device will be caught
+# Calling ceph-disk prepare is sufficient for deploying an OSD
+# After ceph-disk prepare finishes, the new device will be caught
 # by udev which will run ceph-disk-activate on it (udev will map
 # the devices if dm-crypt is used).
 # IMPORTANT:
@@ -91,8 +91,8 @@ if node['ceph']['osd_devices']
 
     dmcrypt = osd_device['encrypted'] == true ? '--dmcrypt' : ''
 
-    execute "ceph-disk-prepare on #{osd_device['device']}" do
-      command "ceph-disk-prepare --zap-disk #{dmcrypt} #{osd_device['device']} #{osd_device['journal']}"
+    execute "ceph-disk prepare on #{osd_device['device']}" do
+      command "ceph-disk prepare --zap-disk #{dmcrypt} #{osd_device['device']} #{osd_device['journal']}"
       action :run
       notifies :create, "ruby_block[save osd_device status #{index}]", :immediately
     end

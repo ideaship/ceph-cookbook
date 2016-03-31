@@ -5,8 +5,6 @@
 # Don't change the cluster name either
 # Default path for mon data: /var/lib/ceph/mon/$cluster-$id/
 #   which will be /var/lib/ceph/mon/ceph-`hostname`/
-#   This path is used by upstart. If changed, upstart won't
-#   start the monitor
 # The keyring files are created using the following pattern:
 #  /etc/ceph/$cluster.client.$name.keyring
 #  e.g. /etc/ceph/ceph.client.admin.keyring
@@ -21,17 +19,13 @@ include_recipe 'ceph::mon_install'
 
 service_type = node['ceph']['mon']['init_style']
 
-directory '/var/run/ceph' do
-  owner 'root'
-  group 'root'
-  mode 00755
-  recursive true
-  action :create
-end
+# Note(JR): This requires Infernalis or higher
+ceph_user = 'ceph'
+ceph_group = 'ceph'
 
 directory "/var/lib/ceph/mon/ceph-#{node['hostname']}" do
-  owner 'root'
-  group 'root'
+  owner ceph_user
+  group ceph_group
   mode 00755
   recursive true
   action :create
@@ -40,21 +34,27 @@ end
 # TODO: cluster name
 cluster = 'ceph'
 
-keyring = "#{Chef::Config[:file_cache_path]}/#{cluster}-#{node['hostname']}.mon.keyring"
+keyring = "/tmp/#{cluster}-#{node['hostname']}.mon.keyring"
 
 execute 'format mon-secret as keyring' do # ~FC009
   command lazy { "ceph-authtool '#{keyring}' --create-keyring --name=mon. --add-key='#{mon_secret}' --cap mon 'allow *'" }
+  user ceph_user
+  group ceph_group
   creates keyring
   sensitive true if Chef::Resource::Execute.method_defined? :sensitive
 end
 
 execute 'add bootstrap-osd key to keyring' do
   command lazy { "ceph-authtool '#{keyring}' --name=client.bootstrap-osd --add-key='#{osd_secret}' --cap mon 'allow profile bootstrap-osd'  --cap osd 'allow profile bootstrap-osd'" }
+  user ceph_user
+  group ceph_group
   sensitive true if Chef::Resource::Execute.method_defined? :sensitive
 end
 
 execute 'ceph-mon mkfs' do
   command "ceph-mon --mkfs -i #{node['hostname']} --keyring '#{keyring}'"
+  user ceph_user
+  group ceph_group
 end
 
 ruby_block 'finalise' do
@@ -82,6 +82,8 @@ service 'ceph_mon' do
   when 'upstart'
     service_name 'ceph-mon-all-starter'
     provider Chef::Provider::Service::Upstart
+  when 'systemd'
+    service_name 'ceph-mon'
   else
     service_name 'ceph'
   end

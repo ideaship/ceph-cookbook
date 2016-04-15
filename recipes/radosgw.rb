@@ -36,23 +36,11 @@ node.default['ceph']['config']['rgw'] = {
 bind_iface = node['ceph']['radosgw']['bind_interface'] 
 if bind_iface
   address = address_for bind_iface
-  node.normal['ceph']['radosgw']['rgw_addr'] = "#{address}:80"
+  node.normal['ceph']['radosgw']['rgw_port'] = "#{address}:80"
 end
 
 include_recipe 'ceph'
 include_recipe 'ceph::radosgw_install'
-
-directory '/var/log/radosgw' do
-  owner node['apache']['user']
-  group node['apache']['group']
-  mode '0755'
-  action :create
-end
-
-file '/var/log/radosgw/radosgw.log' do
-  owner node['apache']['user']
-  group node['apache']['group']
-end
 
 if node['ceph']['radosgw']['webserver_companion']
   include_recipe "ceph::radosgw_#{node['ceph']['radosgw']['webserver_companion']}"
@@ -63,7 +51,7 @@ rgw_key =
   chef_vault_item('vault_ceph_secrets',
                   "ceph_radosgw_#{rgw_clientname}")["ceph_radosgw_#{rgw_clientname}"]
 rgw_caps = {
-  'mon' => 'allow r',
+  'mon' => 'allow rw',
   'osd' => 'allow rwx'
 }
 
@@ -75,7 +63,7 @@ end
 ceph_client "radosgw.#{rgw_clientname}" do
   key rgw_key
   owner 'root'
-  group node['apache']['group']
+  group 'root'
   mode 0640
 end
 
@@ -85,41 +73,7 @@ ceph_client 'admin' do
   mode 0640
 end
 
-node['ceph']['radosgw']['pools'].each do |pool, pg_num|
-  # create zone pools for region
-  ceph_pool "#{region}#{zone}#{pool}" do
-    pg_num pg_num
-  end
-  # create region root pool
-  next unless pool == '.rgw.root'
-  ceph_pool "#{region}#{pool}" do
-    pg_num pg_num
-  end
-end
-
-directory "/var/lib/ceph/radosgw/ceph-radosgw.#{rgw_clientname}" do
-  recursive true
-  only_if { node['platform'] == 'ubuntu' }
-end
-
-# needed by https://github.com/ceph/ceph/blob/master/src/upstart/radosgw-all-starter.conf
-file "/var/lib/ceph/radosgw/ceph-radosgw.#{rgw_clientname}/done" do
-  action :create
-  only_if { node['platform'] == 'ubuntu' }
-end
-
 service 'radosgw' do
-  case node['ceph']['radosgw']['init_style']
-  when 'upstart'
-    service_name 'radosgw-all'
-    provider Chef::Provider::Service::Upstart
-  else
-    if node['platform'] == 'debian'
-      service_name 'radosgw'
-    else
-      service_name 'ceph-radosgw'
-    end
-  end
   supports :restart => true
   action [:enable, :start]
   subscribes :restart, 'template[/etc/ceph/ceph.conf]'

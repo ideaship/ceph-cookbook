@@ -12,3 +12,6 @@ depends 'chef-vault'
 depends 'yum', '>= 3.0'
 depends 'yum-epel'
 depends 'openstack-common'
+
+source_url 'https://github.com/cloudbau/ceph-cookbook' if respond_to?(:source_url)
+issues_url 'https://github.com/cloudbau/ceph-cookbook/issues' if respond_to?(:issues_url)

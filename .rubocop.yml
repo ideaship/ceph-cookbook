@@ -6,7 +6,7 @@ AllCops:
     - Thorfile
     - Guardfile
   Exclude:
-    - vendor/**
+    - vendor/**/*
 
 ClassLength:
   Enabled: false
@@ -27,4 +27,6 @@ TrailingComma:
 WordArray:
   Enabled: false
 Metrics/AbcSize:
-  Max: 33
+  Enabled: false
+Metrics/PerceivedComplexity:
+  Enabled: false

@@ -7,7 +7,7 @@ end
 
 branch = node['ceph']['branch']
 if branch == 'dev' && platform_family != 'centos' && platform_family != 'fedora'
-  fail "Dev branch for #{platform_family} is not yet supported"
+  raise "Dev branch for #{platform_family} is not yet supported"
 end
 
 yum_repository 'ceph' do

@@ -44,12 +44,12 @@ end
 
 service_type = node['ceph']['osd']['init_style']
 
-case service_type
-when 'upstart'
-  filename = 'upstart'
-else
-  filename = 'sysvinit'
-end
+filename = case service_type
+           when 'upstart'
+             'upstart'
+           else
+             'sysvinit'
+           end
 file "/var/lib/ceph/mds/#{cluster}-#{node['hostname']}/#{filename}" do
   owner 'root'
   group 'root'
@@ -65,5 +65,5 @@ service 'ceph_mds' do
     service_name 'ceph'
   end
   action [:enable, :start]
-  supports :restart => true
+  supports restart: true
 end

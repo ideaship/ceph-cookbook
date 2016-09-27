@@ -1,10 +1,6 @@
-language: ruby
-sudo: false
-cache: bundler
-bundler_args: --without kitchen_common kitchen_vagrant
-rvm:
-  - 2.0
-  - 2.1
-  - 2.2
-script:
-  - bundle exec rake travis
+# install chefdk for testing
+install:
+  - wget https://packages.chef.io/stable/ubuntu/12.04/chefdk_0.18.26-1_amd64.deb
+  - sudo dpkg -i chefdk_0.18.26-1_amd64.deb
+# run all rake tasks (lint and style)
+script: rake

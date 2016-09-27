@@ -47,7 +47,7 @@
   admin socket = /var/run/ceph/ceph-client.radosgw.<%= @rgw_clientname %>.asok
   pid file = /var/run/ceph/$name.pid
   keyring = /etc/ceph/ceph.client.radosgw.<%= @rgw_clientname %>.keyring
-  log file = /var/log/radosgw/radosgw.log
+  log file = /var/log/ceph/radosgw.log
 <% if (! node['ceph']['config']['rgw'].nil?) -%>
   <% node['ceph']['config']['rgw'].sort.each do |k, v| %>
   <%= k %> = <%= v %>

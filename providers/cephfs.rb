@@ -1,3 +1,5 @@
+use_inline_resources
+
 def create_client
   # Client settings
   client_name = "cephfs.#{node['hostname']}"

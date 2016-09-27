@@ -6,11 +6,11 @@ default['ceph']['user_pools'] = []
 
 case node['platform']
 when 'ubuntu'
-  if node['platform_version'].to_f >= 15.04
-    default['ceph']['init_style'] = 'systemd'
-  else
-    default['ceph']['init_style'] = 'upstart'
-  end
+  default['ceph']['init_style'] = if node['platform_version'].to_f >= 15.04
+                                    'systemd'
+                                  else
+                                    'upstart'
+                                  end
 else
   default['ceph']['init_style'] = 'sysvinit'
 end

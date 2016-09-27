@@ -81,7 +81,7 @@ template "#{node['ceph']['radosgw']['path']}/s3gw.fcgi" do
   group 'root'
   mode '0755'
   variables(
-    :ceph_rgw_client => "client.radosgw.#{node['hostname']}"
+    ceph_rgw_client: "client.radosgw.#{node['hostname']}"
   )
 end
 

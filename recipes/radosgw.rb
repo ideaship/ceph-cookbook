@@ -19,7 +19,7 @@
 
 # needed for address_for method
 class ::Chef::Recipe
-    include ::Openstack
+  include ::Openstack
 end
 
 zone = node['ceph']['radosgw']['zone']
@@ -30,10 +30,10 @@ node.default['ceph']['config']['rgw'] = {
   'rgw region root pool' => "#{region}.rgw.root",
   'rgw zone' => "#{region[1..-1]}#{zone}",
   'rgw zone root pool' => "#{region}#{zone}.rgw.root",
-  'rgw dns name' => node['ceph']['radosgw']['api_fqdn'],
+  'rgw dns name' => node['ceph']['radosgw']['api_fqdn']
 }
 
-bind_iface = node['ceph']['radosgw']['bind_interface'] 
+bind_iface = node['ceph']['radosgw']['bind_interface']
 if bind_iface
   address = address_for bind_iface
   node.normal['ceph']['radosgw']['rgw_port'] = "#{address}:80"
@@ -56,8 +56,8 @@ rgw_caps = {
 }
 
 ceph_user "radosgw.#{rgw_clientname}" do
-    caps rgw_caps
-    key rgw_key
+  caps rgw_caps
+  key rgw_key
 end
 
 ceph_client "radosgw.#{rgw_clientname}" do
@@ -74,7 +74,7 @@ ceph_client 'admin' do
 end
 
 service 'radosgw' do
-  supports :restart => true
+  supports restart: true
   action [:enable, :start]
   subscribes :restart, 'template[/etc/ceph/ceph.conf]'
 end

@@ -4,5 +4,5 @@ when 'debian'
 when 'rhel', 'suse', 'fedora'
   include_recipe 'ceph::rpm'
 else
-  fail 'not supported'
+  raise 'not supported'
 end

@@ -72,7 +72,7 @@ if service_type == 'upstart'
   end
   service 'ceph-mon-all' do
     provider Chef::Provider::Service::Upstart
-    supports :status => true
+    supports status: true
     action [:enable, :start]
   end
 end
@@ -87,7 +87,7 @@ service 'ceph_mon' do
   else
     service_name 'ceph'
   end
-  supports :restart => true, :status => true
+  supports restart: true, status: true
   action [:enable, :start]
 end
 

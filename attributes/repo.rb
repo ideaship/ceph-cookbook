@@ -48,5 +48,5 @@ when 'suse'
   default['ceph']['suse']['testing']['repository'] = "#{node['ceph']['repo_url']}/rpm-testing/#{suse_version}/x86_64/ceph-release-1-0.#{suse_version}.noarch.rpm"
   default['ceph']['suse']['extras']['repository'] = "#{node['ceph']['extras_repo_url']}/rpm/#{suse_version}/x86_64/"
 else
-  fail "#{node['platform_family']} is not supported"
+  raise "#{node['platform_family']} is not supported"
 end

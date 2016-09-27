@@ -122,7 +122,7 @@ if node['ceph']['osd_devices']
       service_name 'ceph'
     end
     action [:enable, :start]
-    supports :restart => true
+    supports restart: true
   end
 else
   Log.info('node["ceph"]["osd_devices"] empty')

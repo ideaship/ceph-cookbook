@@ -1,48 +1,14 @@
 #!/usr/bin/env rake
 
-# Style tests. Rubocop and Foodcritic
-namespace :style do
-  begin
-    require 'rubocop/rake_task'
-    desc 'Run Ruby style checks'
-    RuboCop::RakeTask.new(:ruby)
-  rescue LoadError
-    puts '>>>>> Rubocop gem not loaded, omitting tasks' unless ENV['CI']
-  end
+task default: [:lint, :style]
 
-  begin
-    require 'foodcritic'
-
-    desc 'Run Chef style checks'
-    FoodCritic::Rake::LintTask.new(:chef) do |t|
-      t.options = {
-        fail_tags: ['any'],
-        tags: ['~FC003'],
-        chef_version: '11.6.0'
-      }
-    end
-  rescue LoadError
-    puts '>>>>> foodcritic gem not loaded, omitting tasks' unless ENV['CI']
-  end
+# lint and style checks
+desc 'Run FoodCritic (lint) tests'
+task :lint do
+  sh %(chef exec foodcritic --epic-fail any . --tags ~FC003)
 end
 
-desc 'Run all style checks'
-task style: ['style:chef', 'style:ruby']
-
-# Integration tests. Kitchen.ci
-namespace :integration do
-  begin
-    require 'kitchen/rake_tasks'
-
-    desc 'Run kitchen integration tests'
-    Kitchen::RakeTasks.new
-  rescue LoadError
-    puts '>>>>> Kitchen gem not loaded, omitting tasks' unless ENV['CI']
-  end
+desc 'Run RuboCop (style) tests'
+task :style do
+  sh %(chef exec rubocop)
 end
-
-desc 'Run all tests on Travis'
-task travis: ['style']
-
-# Default
-task default: ['style', 'integration:kitchen:all']

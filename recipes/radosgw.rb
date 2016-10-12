@@ -29,7 +29,6 @@ node.default['ceph']['config']['rgw'] = {
   'rgw region' => region[1..-1],
   'rgw region root pool' => "#{region}.rgw.root",
   'rgw zone' => "#{region[1..-1]}#{zone}",
-  'rgw zone root pool' => "#{region}#{zone}.rgw.root",
   'rgw dns name' => node['ceph']['radosgw']['api_fqdn']
 }
 

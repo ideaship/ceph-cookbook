@@ -17,33 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# For EL, delete the current fastcgi configuration
-# and set the correct owners for dirs and logs
-# d_owner = d_group = 'root'
-# if node['platform_family'] == 'rhel'
-#   file "#{node['apache']['dir']}/conf.d/fastcgi.conf" do
-#     action :delete
-#     backup false
-#   end
-#   d_owner = d_group = 'apache'
-# end
-
-# %W(/var/run/ceph
-#    /var/lib/ceph/radosgw/ceph-radosgw.#{node['hostname']}
-#    /var/lib/apache2/
-# ).each do |dir|
-#   directory dir do
-#     owner d_owner
-#     group d_group
-#     mode '0755'
-#     recursive true
-#     action :create
-#   end
-# end
-
 include_recipe 'ceph'
 include_recipe 'ceph::radosgw_apache2_repo'
-node.normal['apache']['listen'] = [node['ceph']['radosgw']['rgw_addr']]
+#node.normal['apache']['listen'] = [node['ceph']['radosgw']['rgw_addr']]
 
 node['ceph']['radosgw']['apache2']['packages'].each do |pck|
   package pck
@@ -51,14 +27,10 @@ end
 
 include_recipe 'apache2'
 
-apache_module 'fastcgi' do
-  conf true
-  notifies :restart, 'service[apache2]'
-end
-
-apache_module 'rewrite' do
-  conf false
-  notifies :restart, 'service[apache2]'
+%w(proxy proxy_balancer proxy_fcgi rewrite slotmem_shm).each do |modname|
+  apache_module modname do
+    notifies :restart, 'service[apache2]'
+  end
 end
 
 web_app 'rgw' do
@@ -66,6 +38,7 @@ web_app 'rgw' do
   server_name node['ceph']['radosgw']['api_fqdn']
   admin_email node['ceph']['radosgw']['admin_email']
   ceph_rgw_addr node['ceph']['radosgw']['rgw_addr']
+  notifies :restart, 'service[apache2]'
 end
 
 directory node['ceph']['radosgw']['path'] do
@@ -83,12 +56,4 @@ template "#{node['ceph']['radosgw']['path']}/s3gw.fcgi" do
   variables(
     ceph_rgw_client: "client.radosgw.#{node['hostname']}"
   )
-end
-
-if node['platform_family'] == 'suse'
-  bash 'Set MPM apache value' do
-    code 'sed -i s/^[[:space:]]*APACHE_MPM=.*/APACHE_MPM=\"worker\"/ /etc/sysconfig/apache2'
-    not_if 'grep -q "^[[:space:]]*APACHE_MPM=\"worker\"" /etc/sysconfig/apache2'
-    notifies :restart, 'service[apache2]'
-  end
 end

@@ -45,6 +45,17 @@ include_recipe 'ceph'
 include_recipe 'ceph::radosgw_apache2_repo'
 node.normal['apache']['listen'] = [node['ceph']['radosgw']['rgw_addr']]
 
+# Some tunings
+node.normal['apache']['event']['serverlimit'] = 250
+node.normal['apache']['event']['startservers'] = 10
+node.normal['apache']['event']['minsparethreads'] = 75
+node.normal['apache']['event']['maxsparethreads'] = 250
+node.normal['apache']['event']['threadlimit'] = 64
+node.normal['apache']['event']['threadsperchild'] = 32
+node.normal['apache']['event']['maxrequestworkers'] = 8000
+node.normal['apache']['event']['maxconnectionsperchild'] = 10000
+node.normal['apache']['ext_status'] = true
+
 node['ceph']['radosgw']['apache2']['packages'].each do |pck|
   package pck
 end
@@ -66,6 +77,7 @@ web_app 'rgw' do
   server_name node['ceph']['radosgw']['api_fqdn']
   admin_email node['ceph']['radosgw']['admin_email']
   ceph_rgw_addr node['ceph']['radosgw']['rgw_addr']
+  ceph_rgw_status_acl node['ceph']['radosgw']['rgw_status_acl']
 end
 
 directory node['ceph']['radosgw']['path'] do

@@ -4,8 +4,9 @@ FastCgiExternalServer <%= node['ceph']['radosgw']['path'] %>/s3gw.fcgi -host 127
 FastCgiExternalServer <%= node['ceph']['radosgw']['path'] %>/s3gw.fcgi -socket /var/run/ceph/radosgw.<%= node['ceph']['radosgw']['clientname'] %>
 <% end -%>
 
-LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\" \"%{Host}i\"" proxy_combined
+LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s \"%{Referer}i\" \"%{User-Agent}i\" \"%{Host}i\" %B %O %D" proxy_combined
 LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\" \"%{Host}i\"" proxy_debug
+
 
 <VirtualHost <%= node['ceph']['radosgw']['rgw_addr'] %>>
   ServerName <%= @params[:server_name] %>
@@ -18,6 +19,7 @@ LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{Use
   DocumentRoot <%= node['ceph']['radosgw']['path'] %>
 
   RewriteEngine On
+  RewriteCond %{REQUEST_URI} !^/server-status$
   RewriteRule ^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
 
   <IfModule mod_fastcgi.c>
@@ -40,4 +42,11 @@ LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{Use
   ErrorLog /var/log/<%= node['apache']['package'] %>/error.log
   CustomLog /var/log/<%= node['apache']['package'] %>/rgw-access.log proxy_combined
   ServerSignature Off
+
+  <Location /server-status>
+    SetHandler server-status
+    Order Deny,Allow
+    Deny from all
+    Allow from <%= node['ceph']['radosgw']['rgw_status_acl'] %>
+  </Location>
 </VirtualHost>

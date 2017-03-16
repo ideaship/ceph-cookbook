@@ -42,6 +42,7 @@ default['ceph']['radosgw']['pools'] =
 default['ceph']['radosgw']['api_fqdn'] = 'localhost'
 default['ceph']['radosgw']['admin_email'] = 'admin@example.com'
 default['ceph']['radosgw']['rgw_addr'] = '*:80'
+default['ceph']['radosgw']['rgw_status_acl'] = '127.0.0.1'
 default['ceph']['radosgw']['bind_interface'] = nil
 default['ceph']['radosgw']['rgw_port'] = false
 default['ceph']['radosgw']['webserver_companion'] = 'apache2' # can be civetweb or false

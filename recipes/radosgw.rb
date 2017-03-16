@@ -37,6 +37,7 @@ bind_iface = node['ceph']['radosgw']['bind_interface']
 if bind_iface
   address = address_for bind_iface
   node.normal['ceph']['radosgw']['rgw_addr'] = "#{address}:80"
+  node.normal['ceph']['radosgw']['rgw_status_acl'] = address
 end
 
 include_recipe 'ceph'

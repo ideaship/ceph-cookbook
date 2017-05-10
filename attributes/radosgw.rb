@@ -48,6 +48,7 @@ default['ceph']['radosgw']['rgw_port'] = false
 default['ceph']['radosgw']['webserver_companion'] = 'apache2' # can be civetweb or false
 default['ceph']['radosgw']['use_apache_fork'] = true
 default['ceph']['radosgw']['init_style'] = node['ceph']['init_style']
+default['ceph']['radosgw']['civetweb_opts'] = ''
 
 default['ceph']['radosgw']['path'] = '/var/www'
 

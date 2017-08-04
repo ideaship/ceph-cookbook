@@ -1,6 +1,6 @@
 default['ceph']['install_debug'] = false
 
-default['ceph']['install_repo'] = true
+default['ceph']['install_repo'] = false
 
 default['ceph']['user_pools'] = []
 

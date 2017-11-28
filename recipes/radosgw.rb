@@ -48,7 +48,7 @@ end
 rgw_clientname = node['ceph']['radosgw']['clientname']
 rgw_key =
   chef_vault_item('vault_ceph_secrets',
-                  "ceph_radosgw_#{rgw_clientname}")["ceph_radosgw_#{rgw_clientname}"]
+                  'ceph_radosgw_clientkey')['ceph_radosgw_clientkey']
 rgw_caps = {
   'mon' => 'allow rw',
   'osd' => 'allow rwx'

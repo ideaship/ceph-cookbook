@@ -129,8 +129,6 @@ Ceph Rados Gateway nodes should use the ceph-radosgw role
 ### Ceph MDS
 
 * `node['ceph']['config']['mds']` - a hash of settings to save in ceph.conf in the [mds] section, such as `'mds cache size' => '100000'`
-* `node['ceph']['cephfs_mount']` - where the cephfs recipe should mount CephFS
-* `node['ceph']['cephfs_use_fuse']` - whether the cephfs recipe should use the fuse cephfs client. It will default to heuristics based on the kernel version
 
 ### Ceph Rados Gateway
 
@@ -146,7 +144,7 @@ Ceph Rados Gateway nodes should use the ceph-radosgw role
 
 ### ceph\_client
 
-The ceph\_client LWRP provides an easy way to construct a Ceph client key. These keys are needed by anything that needs to talk to the Ceph cluster, including RadosGW, CephFS, and RBD access.
+The ceph\_client LWRP provides an easy way to construct a Ceph client key. These keys are needed by anything that needs to talk to the Ceph cluster, including RadosGW, and RBD access.
 
 #### Actions
 
@@ -165,21 +163,7 @@ The ceph\_client LWRP provides an easy way to construct a Ceph client key. These
 
 ### ceph\_cephfs
 
-The ceph\_cephfs LWRP provides an easy way to mount CephFS. It will automatically create a Ceph client key for the machine and mount CephFS to the specified location. If the kernel client is used, instead of the fuse client, a pre-existing subdirectory of CephFS can be mounted instead of the root.
-
-#### Actions
-
-- :mount - mounts CephFS
-- :umount - unmounts CephFS
-- :remount - remounts CephFS
-- :enable - adds an fstab entry to mount CephFS
-- :disable - removes an fstab entry to mount CephFS
-
-#### Parameters
-
-- :directory - name attribute. Where to mount CephFS in the local filesystem
-- :use\_fuse - whether to use ceph-fuse or the kernel client to mount the filesystem. ceph-fuse is updated more often, but the kernel client allows for subdirectory mounting. Defaults to true
-- :cephfs\_subdir - which CephFS subdirectory to mount. Defaults to '/'. An exception will be thrown if this option is set to anything other than '/' if use\_fuse is also true
+[removed]
 
 ### ceph\_pool
 

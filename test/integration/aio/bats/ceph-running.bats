@@ -6,10 +6,6 @@
   ceph -s | grep HEALTH_OK
 }
 
-@test "cephfs is mounted" {
-  mount | grep -E 'type (fuse\.)?ceph'
-}
-
 @test "radosgw is running" {
   ps auxwww | grep radosg[w]
 }

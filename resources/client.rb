@@ -12,7 +12,7 @@ property :as_keyring, [TrueClass, FalseClass], default: true
 property :keyname, String
 
 # The actual key (the key will be read from a vault item if not provided)
-property :key, String, default: nil
+property :key, String
 
 # where the key should be saved
 # defaults to /etc/ceph/ceph.client.#{name}.#{hostname}.keyring if as_keyring

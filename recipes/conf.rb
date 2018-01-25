@@ -1,3 +1,7 @@
+chef_gem 'netaddr' do
+  version '< 2.0'
+end
+
 # fail 'mon_initial_members must be set in config' if node['ceph']['config']['mon_initial_members'].nil?
 
 unless node['ceph']['config']['fsid']

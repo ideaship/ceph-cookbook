@@ -6,5 +6,3 @@ include_recipe 'ceph::conf'
 node['ceph']['packages'].each do |pck|
   package pck
 end
-
-chef_gem 'netaddr'

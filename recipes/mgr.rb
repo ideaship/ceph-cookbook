@@ -34,6 +34,7 @@ end
 mgr_user = "mgr.#{node['hostname']}"
 
 ceph_user mgr_user do
+  keyname mgr_user
   caps('osd' => 'allow *', 'mon' => 'allow profile mgr', 'mds' => 'allow *')
   key ceph_secret(mgr_user)
   action :create

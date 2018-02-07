@@ -14,11 +14,12 @@ property :key, String
 property :exists
 
 action :create do
-  # current_value is set in load_current_value
-  keyname = current_value.keyname
 
+  # current_value is set in load_current_value
   # new_resource values are set by ceph_user resource (e.g., in
   # recipes/_ceph_controller.rb)
+  name = new_resource.name
+  keyname = new_resource.keyname || "client.#{name}"
   key = new_resource.key
   caps = new_resource.caps
 
@@ -27,7 +28,6 @@ action :create do
     #     ignored; the message "already exists and matches" (below) may be a
     #     bit confusing in that case.
     keys_match = key.nil? || (current_value.key == key)
-
     caps_match = current_value.caps == caps
 
     if keys_match && caps_match
@@ -57,8 +57,6 @@ action :create do
 end
 
 load_current_value do
-  name name
-  keyname keyname || "client.#{name}"
   caps get_caps(keyname)
   key get_key(keyname)
   exists !(key.nil? || key.empty?)

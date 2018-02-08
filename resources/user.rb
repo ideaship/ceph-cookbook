@@ -11,8 +11,6 @@ property :keyname, String
 # The actual key
 property :key, String
 
-property :exists
-
 action :create do
 
   # current_value is set in load_current_value
@@ -22,13 +20,15 @@ action :create do
   keyname = new_resource.keyname || "client.#{name}"
   key = new_resource.key
   caps = new_resource.caps
+  current_caps = get_caps(keyname)
+  current_key = get_key(keyname)
 
-  if current_value.exists
+  if current_caps
     # XXX If no key is passed to the ceph_user resource, key matching is
     #     ignored; the message "already exists and matches" (below) may be a
     #     bit confusing in that case.
-    keys_match = key.nil? || (current_value.key == key)
-    caps_match = current_value.caps == caps
+    keys_match = key.nil? || (current_key == key)
+    caps_match = current_caps == caps
 
     if keys_match && caps_match
       Chef::Log.info "Client #{name} already exists and matches "\
@@ -56,12 +56,6 @@ action :create do
   end
 end
 
-load_current_value do
-  caps get_caps(keyname)
-  key get_key(keyname)
-  exists !(key.nil? || key.empty?)
-end
-
 def get_tmp_path(keyname)
   "#{Chef::Config[:file_cache_path]}/.#{keyname}.keyring"
 end
@@ -76,7 +70,7 @@ def get_caps(keyname)
   cmd = "ceph auth get #{keyname} --name mon. --key='#{mon_secret}'"
   output = Mixlib::ShellOut.new(cmd).run_command.stdout
   output.scan(/caps\s*(\S+)\s*=\s*"([^"]*)"/) { |k, v| caps[k] = v }
-  caps
+  caps unless caps == {}
 end
 
 def delete_entity(keyname)

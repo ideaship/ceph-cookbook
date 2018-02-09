@@ -1,63 +1,11 @@
-[global]
-<% unless node['ceph']['config']['fsid'].nil? -%>
-  fsid = <%= node['ceph']['config']['fsid'] %>
-<% end -%>
-<% if node['ceph']['is_mon'] and (! node['ceph']['config']['mon_initial_members'].nil?) -%>
-  mon initial members = <%= node['ceph']['config']['mon_initial_members'] %>
-<% end -%>
-  mon host = <%= @mon_addresses.sort.join(', ') %>
-<% if (! node['ceph']['config']['global'].nil?) -%>
-  <% node['ceph']['config']['global'].sort.each do |k, v| %>
-  <%= k %> = <%= v %>
-  <% end %>
-<% end -%>
-
-<% if (! node['ceph']['config']['osd'].nil?) -%>
-[osd]
-  <% node['ceph']['config']['osd'].sort.each do |k, v| %>
-  <%= k %> = <%= v %>
-  <% end %>
-<% end -%>
-
-<% if (! node['ceph']['config']['mon'].nil?) -%>
-[mon]
-  <% node['ceph']['config']['mon'].sort.each do |k, v| %>
-  <%= k %> = <%= v %>
-  <% end %>
-<% end -%>
-
-<% if (! node['ceph']['config']['mds'].nil?) -%>
-[mds]
-  <% node['ceph']['config']['mds'].sort.each do |key, value| -%>
-  <%= key %> = <%= value %>
-  <%   end -%>
-<% end -%>
-
-<% if (@is_rgw) -%>
-[client.radosgw.<%= @rgw_clientname %>]
-<% if node['ceph']['radosgw']['webserver_companion'] == 'civetweb' -%>
-  <% if node['ceph']['radosgw']['rgw_port'] == false %>
-  rgw frontends = "civetweb port=80"
-<% else -%>
-  rgw frontends = "civetweb port=<%=node['ceph']['radosgw']['rgw_port']%> num_threads=10000"
+<% @service_config.each do |section, values| -%>
+[<%= section %>]
+  <% values.each do |key, value| -%>
+  <% if value.class == Hash -%>
+<%= "# #{value['comment']}" -%>
+<%= key %> = <%= value['set_to'] %>
+  <% else -%>
+<%= key %> = <%= value %>
+  <% end -%>
 <% end -%>
 <% end -%>
-  host = <%= node['hostname'] %>
-  rgw socket path = /var/run/ceph/radosgw.<%= @rgw_clientname %>
-  admin socket = /var/run/ceph/ceph-client.radosgw.<%= @rgw_clientname %>.asok
-  pid file = /var/run/ceph/$name.pid
-  keyring = /etc/ceph/ceph.client.radosgw.<%= @rgw_clientname %>.keyring
-  log file = /var/log/ceph/radosgw.log
-<% if (! node['ceph']['config']['rgw'].nil?) -%>
-  <% node['ceph']['config']['rgw'].sort.each do |k, v| %>
-  <%= k %> = <%= v %>
-  <% end %>
-<% end -%>
-<% end -%>
-
-<% node['ceph']['config-sections'].sort.each do |name, sect| %>
-[<%= name %>]
-  <% sect.sort.each do |k, v| %>
-  <%= k %> = <%= v %>
-  <% end %>
-<% end %>

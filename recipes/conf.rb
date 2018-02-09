@@ -1,12 +1,3 @@
-# fail 'mon_initial_members must be set in config' if node['ceph']['config']['mon_initial_members'].nil?
-
-unless node['ceph']['config']['fsid']
-  Chef::Log.warn('We are generating a new uuid for fsid')
-  require 'securerandom'
-  node.set['ceph']['config']['fsid'] = SecureRandom.uuid
-  node.save
-end
-
 directory '/etc/ceph' do
   owner 'root'
   group 'root'
@@ -14,14 +5,16 @@ directory '/etc/ceph' do
   action :create
 end
 
+node.default['ceph']['config'].tap do |conf|
+  conf['global'].tap do |global|
+    global['mon host'] = mon_addresses.sort.join(', ')
+  end
+end
+
 template '/etc/ceph/ceph.conf' do
   source 'ceph.conf.erb'
-  variables lazy {
-    {
-      mon_addresses: mon_addresses,
-      is_rgw: node['ceph']['is_radosgw'],
-      rgw_clientname: node['ceph']['radosgw']['clientname']
-    }
-  }
+  variables(
+    service_config: node['ceph']['config']
+  )
   mode '0644'
 end

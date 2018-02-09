@@ -1,4 +1,5 @@
-# Chef cookbook [![Build Status](https://travis-ci.org/ceph/ceph-cookbook.svg?branch=master)](https://travis-ci.org/ceph/ceph-cookbook) [![Gitter chat](https://badges.gitter.im/ceph/ceph-cookbook.png)](https://gitter.im/ceph/ceph-cookbook)
+# THE README IS CURRENTLY A WIP SINCE THE COOKBOOK VERSION 3.0.0 is a major rewrite
+
 
 ## DESCRIPTION
 
@@ -7,8 +8,6 @@ Installs and configures Ceph, a distributed network storage and filesystem desig
 The current version is focused towards deploying Monitors and OSD on Ubuntu.
 
 For documentation on how to use this cookbook, refer to the [USAGE](#USAGE) section.
-
-For help, use [Gitter chat](https://gitter.im/ceph/ceph-cookbook), [mailing-list](mailto:ceph-users-join@lists.ceph.com) or [issues](https://github.com/ceph/ceph-cookbook/issues)
 
 ## REQUIREMENTS
 
@@ -20,18 +19,9 @@ For help, use [Gitter chat](https://gitter.im/ceph/ceph-cookbook), [mailing-list
 
 Tested as working:
 
-* Debian Wheezy (7)
-* Ubuntu Precise (12.04)
-* Ubuntu Trusty (14.04)
+* Ubuntu Xenial (16.04)
 
 ### Cookbooks
-
-The ceph cookbook requires the following cookbooks from Chef:
-
-https://supermarket.chef.io/
-
-* [apt](https://supermarket.chef.io/cookbooks/apt)
-* [apache2](https://supermarket.chef.io/cookbooks/apache2)
 
 ## TEMPLATES
 
@@ -46,59 +36,13 @@ http://www.inktank.com/
 
 This cookbook can be used to implement a chosen cluster design. Most of the configuration is retrieved from node attributes, which can be set by an environment or by a wrapper cookbook. A basic cluster configuration will need most of the following attributes:
 
-* `node['ceph']['config']['fsid']` - the cluster UUID
+* `node['ceph']['config']['global']['fsid']` - the cluster UUID
 * `node['ceph']['config]'['global']['public network']` - a CIDR specification of the public network
 * `node['ceph']['config]'['global']['cluster network']` - a CIDR specification of a separate cluster replication network
 * `node['ceph']['config]'['global']['rgw dns name']` -  the main domain of the radosgw daemon
 
 Most notably, the configuration does _NOT_ need to set the `mon_initial_members`, because the cookbook does a node search to find other mons in the same environment.
 
-The other set of attributes that this recipe needs is `node['ceph']['osd_devices']`, which is an array of OSD definitions, similar to the following:
-
-* {'device' => '/dev/sdb'} - Use a full disk for the OSD, with a small partition for the journal
-* {'type' => 'directory', 'device' => '/src/node/sdb1/ceph'} - Use a directory, and have a small file for the journal
-* {'device' => '/dev/sde', 'dmcrypt' => true} - Store the data encrypted by passing --dmcrypt to `ceph-disk-prepare`
-* {'device' => '/dev/sdc', 'journal' => '/dev/sdd2'} - use a full disk for the OSD with a custom partition for the journal
-
-### Using a Policy Wrapper Cookbook
-
-To automate setting several of these node attributes, it is recommended to use a policy wrapper cookbook. This allows the ability to use Chef Server cookbook versions along with environment version restrictions to roll out configuration changes in an ordered fashion.
-
-It also can help with automating some settings. For example, a wrapper cookbook could peek at the list of harddrives that ohai has found and populate node['ceph']['osd_devices'] accordingly, instead of manually typing them all in:
-
-```ruby
-node.override['ceph']['osd_devices'] = node['block_device'].each.reject{ |name, data| name !~ /^sd[b-z]/}.sort.map { |name, data| {'journal' => "/dev/#{name}"} }
-```
-
-For best results, the wrapper cookbook's recipe should be placed before the Ceph cookbook in the node's runlist. This will ensure that any attributes are in place before the Ceph cookbook runs and consumes those attributes.
-
-### Ceph Monitor
-
-Ceph monitor nodes should use the ceph-mon role.
-
-Includes:
-
-* ceph::default
-
-### Ceph Metadata Server
-
-Ceph metadata server nodes should use the ceph-mds role.
-
-Includes:
-
-* ceph::default
-
-### Ceph OSD
-
-Ceph OSD nodes should use the ceph-osd role
-
-Includes:
-
-* ceph::default
-
-### Ceph Rados Gateway
-
-Ceph Rados Gateway nodes should use the ceph-radosgw role
 
 ## ATTRIBUTES
 
@@ -208,8 +152,10 @@ This cookbook uses Test Kitchen to verify functionality. A Pull Request can't be
 ## LICENSE AND AUTHORS
 
 * Author: Kyle Bader <kyle.bader@dreamhost.com>
+* Author: Jan Klare <j.klare@cloudbau.de>
 
 * Copyright 2013, DreamHost Web Hosting and Inktank Storage Inc.
+* Copyright 2018, cloudbau GmbH
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

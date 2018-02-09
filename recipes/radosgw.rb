@@ -24,28 +24,48 @@ end
 
 zone = node['ceph']['radosgw']['zone']
 region = node['ceph']['radosgw']['region']
-node.default['ceph']['is_radosgw'] = true
-node.default['ceph']['config']['rgw'] = {
-  'rgw region' => region[1..-1],
-  'rgw region root pool' => "#{region}.rgw.root",
-  'rgw zone' => "#{region[1..-1]}#{zone}",
-  'rgw dns name' => node['ceph']['radosgw']['api_fqdn']
-}
-
+rgw_clientname = node['ceph']['radosgw']['clientname']
 bind_iface = node['ceph']['radosgw']['bind_interface']
-if bind_iface
-  address = address_for bind_iface
-  node.normal['ceph']['radosgw']['rgw_port'] = "#{address}:80"
+address = address_for(bind_iface) if bind_iface
+
+rgw_frontends = 'civetweb'
+if address
+  if node['ceph']['radosgw']['civetweb']['ssl_certificate']
+    rgw_frontends += " port=#{address}:80+#{address}:443s"
+    rgw_frontends += " ssl_certificate=#{node['ceph']['radosgw']['civetweb']['ssl_certificate']}"
+  else
+    rgw_frontends += " port=#{address}:80"
+  end
+else
+  rgw_frontends += " port=80"
+end
+if node['ceph']['radosgw']['civetweb']['num_threads']
+  rgw_frontends += " num_threads=#{node['ceph']['radosgw']['civetweb']['num_threads']}"
+end
+
+node.default['ceph']['config']["client.radosgw.#{rgw_clientname}"].tap do |rgw|
+    rgw['rgw socket path'] = "/var/run/ceph/radosgw.#{rgw_clientname}"
+    rgw['admin socket'] = "/var/run/ceph/ceph-client.radosgw.#{rgw_clientname}.asok"
+    rgw['keyring'] = "/etc/ceph/ceph.client.radosgw.#{rgw_clientname}.keyring"
+    rgw['rgw region'] = region[1..-1]
+    rgw['rgw region root pool'] = "#{region}.rgw.root"
+    rgw['rgw zone'] = "#{region[1..-1]}#{zone}"
+    rgw['rgw dns name'] = node['ceph']['radosgw']['api_fqdn']
+    rgw['rgw frontends'] = rgw_frontends
+    rgw['host'] = node['hostname']
+    rgw['pid file'] = "/var/run/ceph/$name.pid"
+    rgw['log file'] = "/var/log/ceph/radosgw.log"
+    rgw['rgw gc obj min wait'] = 120
+    rgw['rgw gc processor max time'] = 120
+    rgw['rgw gc processor period'] = 120
+    rgw['rgw override bucket index max shards'] = 8
 end
 
 include_recipe 'ceph'
-include_recipe 'ceph::radosgw_install'
-
-if node['ceph']['radosgw']['webserver_companion']
-  include_recipe "ceph::radosgw_#{node['ceph']['radosgw']['webserver_companion']}"
+node['ceph']['radosgw']['packages'].each do |pck|
+  package pck
 end
 
-rgw_clientname = node['ceph']['radosgw']['clientname']
 rgw_key =
   chef_vault_item('vault_ceph_secrets',
                   'ceph_radosgw_clientkey')['ceph_radosgw_clientkey']

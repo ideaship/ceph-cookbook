@@ -53,32 +53,8 @@ file "/var/lib/ceph/mgr/#{cluster}-#{node['hostname']}/done" do
   mode 00644
 end
 
-service_type = node['ceph']['init_style']
-
-filename = case service_type
-           when 'systemd'
-             'systemd'
-           when 'upstart'
-             'upstart'
-           else
-             'sysvinit'
-           end
-file "/var/lib/ceph/mgr/#{cluster}-#{node['hostname']}/#{filename}" do
-  owner 'root'
-  group 'root'
-  mode 00644
-end
-
 service 'ceph_mgr' do
-  case service_type
-  when 'upstart'
-    service_name 'ceph-mgr-all-starter'
-    provider Chef::Provider::Service::Upstart
-  when 'systemd'
-    service_name "ceph-mgr@#{node['hostname']}"
-  else
-    service_name 'ceph'
-  end
+  service_name "ceph-mgr@#{node['hostname']}"
   action [:enable, :start]
   supports restart: true
 end

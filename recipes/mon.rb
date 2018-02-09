@@ -17,8 +17,6 @@ node.default['ceph']['is_mon'] = true
 include_recipe 'ceph'
 include_recipe 'ceph::mon_install'
 
-service_type = node['ceph']['mon']['init_style']
-
 # Note(JR): This requires Infernalis or higher
 ceph_user = 'ceph'
 ceph_group = 'ceph'
@@ -57,36 +55,8 @@ execute 'ceph-mon mkfs' do
   group ceph_group
 end
 
-ruby_block 'finalise' do
-  block do
-    ['done', service_type].each do |ack|
-      ::File.open("/var/lib/ceph/mon/ceph-#{node['hostname']}/#{ack}", 'w').close
-    end
-  end
-end
-
-if service_type == 'upstart'
-  service 'ceph-mon' do
-    provider Chef::Provider::Service::Upstart
-    action :enable
-  end
-  service 'ceph-mon-all' do
-    provider Chef::Provider::Service::Upstart
-    supports status: true
-    action [:enable, :start]
-  end
-end
-
 service 'ceph_mon' do
-  case service_type
-  when 'upstart'
-    service_name 'ceph-mon-all-starter'
-    provider Chef::Provider::Service::Upstart
-  when 'systemd'
-    service_name 'ceph-mon'
-  else
-    service_name 'ceph'
-  end
+  service_name 'ceph-mon'
   supports restart: true, status: true
   action [:enable, :start]
 end

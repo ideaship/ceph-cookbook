@@ -1,7 +1,5 @@
-actions :create
 default_action :create
 
-property :name, String, name_property: true
 property :caps, Hash, default: { 'mon' => 'allow r' }
 
 # what the key should be called in the ceph cluster

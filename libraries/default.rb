@@ -66,9 +66,9 @@ end
 
 def ip_address_to_ceph_address(ip, params)
   if params['family'].eql?('inet')
-    return "#{ip}:6789"
+    "#{ip}:6789"
   elsif params['family'].eql?('inet6')
-    return "[#{ip}]:6789"
+    "[#{ip}]:6789"
   end
 end
 

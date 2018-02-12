@@ -5,10 +5,7 @@
 # Author:: Sergio de Carvalho <scarvalhojr@users.noreply.github.com>
 #
 
-actions :create, :delete
 default_action :create
-
-property :name, String, name_property: true
 
 # The total number of placement groups for the pool.
 property :pg_num, Integer, required: true

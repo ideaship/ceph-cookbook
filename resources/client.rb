@@ -1,7 +1,5 @@
-actions :add, :create
 default_action :add
 
-property :name, String, name_property: true
 property :caps, Hash, default: { 'mon' => 'allow r', 'osd' => 'allow r' }
 
 # Whether to store the secret in a keyring file or a plain secret file

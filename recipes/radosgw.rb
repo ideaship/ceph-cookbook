@@ -37,28 +37,28 @@ if address
     rgw_frontends += " port=#{address}:80"
   end
 else
-  rgw_frontends += " port=80"
+  rgw_frontends += ' port=80'
 end
 if node['ceph']['radosgw']['civetweb']['num_threads']
   rgw_frontends += " num_threads=#{node['ceph']['radosgw']['civetweb']['num_threads']}"
 end
 
 node.default['ceph']['config']["client.radosgw.#{rgw_clientname}"].tap do |rgw|
-    rgw['rgw socket path'] = "/var/run/ceph/radosgw.#{rgw_clientname}"
-    rgw['admin socket'] = "/var/run/ceph/ceph-client.radosgw.#{rgw_clientname}.asok"
-    rgw['keyring'] = "/etc/ceph/ceph.client.radosgw.#{rgw_clientname}.keyring"
-    rgw['rgw region'] = region[1..-1]
-    rgw['rgw region root pool'] = "#{region}.rgw.root"
-    rgw['rgw zone'] = "#{region[1..-1]}#{zone}"
-    rgw['rgw dns name'] = node['ceph']['radosgw']['api_fqdn']
-    rgw['rgw frontends'] = rgw_frontends
-    rgw['host'] = node['hostname']
-    rgw['pid file'] = "/var/run/ceph/$name.pid"
-    rgw['log file'] = "/var/log/ceph/radosgw.log"
-    rgw['rgw gc obj min wait'] = 120
-    rgw['rgw gc processor max time'] = 120
-    rgw['rgw gc processor period'] = 120
-    rgw['rgw override bucket index max shards'] = 8
+  rgw['rgw socket path'] = "/var/run/ceph/radosgw.#{rgw_clientname}"
+  rgw['admin socket'] = "/var/run/ceph/ceph-client.radosgw.#{rgw_clientname}.asok"
+  rgw['keyring'] = "/etc/ceph/ceph.client.radosgw.#{rgw_clientname}.keyring"
+  rgw['rgw region'] = region[1..-1]
+  rgw['rgw region root pool'] = "#{region}.rgw.root"
+  rgw['rgw zone'] = "#{region[1..-1]}#{zone}"
+  rgw['rgw dns name'] = node['ceph']['radosgw']['api_fqdn']
+  rgw['rgw frontends'] = rgw_frontends
+  rgw['host'] = node['hostname']
+  rgw['pid file'] = '/var/run/ceph/$name.pid'
+  rgw['log file'] = '/var/log/ceph/radosgw.log'
+  rgw['rgw gc obj min wait'] = 120
+  rgw['rgw gc processor max time'] = 120
+  rgw['rgw gc processor period'] = 120
+  rgw['rgw override bucket index max shards'] = 8
 end
 
 include_recipe 'ceph'
@@ -71,7 +71,7 @@ rgw_key =
                   'ceph_radosgw_clientkey')['ceph_radosgw_clientkey']
 rgw_caps = {
   'mon' => 'allow rw',
-  'osd' => 'allow rwx'
+  'osd' => 'allow rwx',
 }
 
 ceph_user "radosgw.#{rgw_clientname}" do

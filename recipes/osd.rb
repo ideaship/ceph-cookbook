@@ -92,7 +92,7 @@ if node['ceph']['osd_devices']
     execute "ceph-disk prepare on #{osd_device['device']}" do
       command "ceph-disk prepare --zap-disk #{dmcrypt} #{osd_device['device']} #{osd_device['journal']}"
       action :run
-      notifies :create, "ruby_block[save osd_device status #{index}]", :immediately
+      notifies :run, "ruby_block[save osd_device status #{index}]", :immediately
     end
 
     execute "ceph-disk-activate #{osd_device['device']}" do

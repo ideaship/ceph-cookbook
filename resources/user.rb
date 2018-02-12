@@ -12,7 +12,6 @@ property :keyname, String
 property :key, String
 
 action :create do
-
   # current_value is set in load_current_value
   # new_resource values are set by ceph_user resource (e.g., in
   # recipes/_ceph_controller.rb)

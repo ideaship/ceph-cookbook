@@ -81,7 +81,11 @@ end
 def create_entity(keyname, key, caps)
   tmp_keyring = get_tmp_path(keyname)
 
+  puts "RLX keyname: #{keyname} tmp_keyring: #{tmp_keyring}"
+
   key ||= ceph_secret(keyname)
+
+  puts "RLX key: #{key}"
 
   cmd_text = "ceph-authtool #{tmp_keyring} --create-keyring --name #{keyname} "\
              "--add-key '#{key}'"

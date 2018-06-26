@@ -33,7 +33,7 @@ https_port = node['ceph']['radosgw']['https_port']
 rgw_frontends = 'civetweb'
 if address
   if node['ceph']['radosgw']['civetweb']['ssl_certificate']
-    rgw_frontends += " port=#{address}:#{http_port}+#{address}:#{https_port}"
+    rgw_frontends += " port=#{address}:#{http_port}+#{address}:#{https_port}s"
     rgw_frontends += " ssl_certificate=#{node['ceph']['radosgw']['civetweb']['ssl_certificate']}"
   else
     rgw_frontends += " port=#{address}:#{http_port}"

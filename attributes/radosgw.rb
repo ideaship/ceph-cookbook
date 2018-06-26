@@ -24,3 +24,5 @@ default['ceph']['radosgw']['admin_email'] = 'admin@example.com'
 default['ceph']['radosgw']['bind_interface'] = nil
 default['ceph']['radosgw']['civetweb']['ssl_certificate'] = false
 default['ceph']['radosgw']['packages'] = ['radosgw']
+default['ceph']['radosgw']['http_port'] = 80
+default['ceph']['radosgw']['https_port'] = 443

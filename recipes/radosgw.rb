@@ -27,17 +27,19 @@ region = node['ceph']['radosgw']['region']
 rgw_clientname = node['ceph']['radosgw']['clientname']
 bind_iface = node['ceph']['radosgw']['bind_interface']
 address = address_for(bind_iface) if bind_iface
+http_port = node['ceph']['radosgw']['http_port']
+https_port = node['ceph']['radosgw']['https_port']
 
 rgw_frontends = 'civetweb'
 if address
   if node['ceph']['radosgw']['civetweb']['ssl_certificate']
-    rgw_frontends += " port=#{address}:80+#{address}:443s"
+    rgw_frontends += " port=#{address}:#{http_port}+#{address}:#{https_port}"
     rgw_frontends += " ssl_certificate=#{node['ceph']['radosgw']['civetweb']['ssl_certificate']}"
   else
-    rgw_frontends += " port=#{address}:80"
+    rgw_frontends += " port=#{address}:#{http_port}"
   end
 else
-  rgw_frontends += ' port=80'
+  rgw_frontends += " port=#{http_port}"
 end
 if node['ceph']['radosgw']['civetweb']['num_threads']
   rgw_frontends += " num_threads=#{node['ceph']['radosgw']['civetweb']['num_threads']}"

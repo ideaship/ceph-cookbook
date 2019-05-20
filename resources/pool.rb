@@ -19,7 +19,7 @@ property :force, [TrueClass, FalseClass], default: false
 property :exists
 
 action :create do
-  if current_value.exists
+  if current_resource.exists
     Chef::Log.info "#{new_resource} already exists - nothing to do."
   else
     converge_by("Creating #{new_resource}") do
@@ -29,12 +29,12 @@ action :create do
 end
 
 action :delete do
-  if current_value.exists
+  if current_resource.exists
     converge_by("Deleting #{new_resource}") do
       delete_pool
     end
   else
-    Chef::Log.info "#{current_value} does not exist - nothing to do."
+    Chef::Log.info "#{current_resource} does not exist - nothing to do."
   end
 end
 
